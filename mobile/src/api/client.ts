@@ -2,8 +2,13 @@ import Constants from "expo-constants";
 import { Platform } from "react-native";
 
 function detectBaseUrl(): string {
+  // Baked in at build time — this is what a packaged APK uses, since it has no
+  // dev server to auto-detect from. Set via eas.json `env` or a local .env.
+  const fromEnv = process.env.EXPO_PUBLIC_API_URL;
+  if (fromEnv) return fromEnv.replace(/\/+$/, "");
+
   const fromExtra = (Constants.expoConfig?.extra as any)?.apiBaseUrl as string | undefined;
-  if (fromExtra) return fromExtra;
+  if (fromExtra) return fromExtra.replace(/\/+$/, "");
 
   // Auto-detect: use the IP Expo's dev server is reachable at (works for Expo Go on a phone
   // and on both simulators without any hardcoded IP).

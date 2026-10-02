@@ -4,23 +4,36 @@
     "slug": "padosipro",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "scheme": "padosipro",
     "userInterfaceStyle": "light",
-    "splash": {
-      "backgroundColor": "#0E6B4F",
-      "resizeMode": "contain"
-    },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.padosipro.app"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0E6B4F"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FAF9F6"
       },
       "package": "com.padosipro.app"
     },
-    "extra": {}
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {},
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/adaptive-icon.png",
+          "backgroundColor": "#FAF9F6",
+          "imageWidth": 200
+        }
+      ]
+    ]
   }
 }

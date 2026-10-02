@@ -3,10 +3,19 @@
   "build": {
     "preview": {
       "distribution": "internal",
-      "android": {
-        "buildType": "apk"
+      "android": { "buildType": "apk" },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://192.168.29.23:4000"
       }
     },
+    "production": {
+      "android": { "buildType": "app-bundle" },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://192.168.29.23:4000"
+      }
+    }
+  },
+  "submit": {
     "production": {}
   }
 }
