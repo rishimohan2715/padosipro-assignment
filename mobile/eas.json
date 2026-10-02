@@ -5,13 +5,13 @@
       "distribution": "internal",
       "android": { "buildType": "apk" },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://192.168.29.23:4000"
+        "EXPO_PUBLIC_API_URL": "https://padosipro-api-4wud.onrender.com"
       }
     },
     "production": {
       "android": { "buildType": "app-bundle" },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://192.168.29.23:4000"
+        "EXPO_PUBLIC_API_URL": "https://padosipro-api-4wud.onrender.com"
       }
     }
   },

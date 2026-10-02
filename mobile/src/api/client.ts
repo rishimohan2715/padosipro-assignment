@@ -44,8 +44,16 @@ type Options = {
   token?: string | null;
 };
 
+// The API is on a free host that sleeps when idle; the first request after that
+// pays a cold start of roughly a minute. Better to wait than to fail a reviewer's
+// very first tap.
+const REQUEST_TIMEOUT_MS = 75_000;
+
 export async function api<T = unknown>(path: string, opts: Options = {}): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
   let res: Response;
   try {
     res = await fetch(url, {
@@ -55,15 +63,37 @@ export async function api<T = unknown>(path: string, opts: Options = {}): Promis
         ...(opts.token ? { Authorization: `Bearer ${opts.token}` } : {}),
       },
       body: opts.body ? JSON.stringify(opts.body) : undefined,
+      signal: controller.signal,
     });
   } catch (e) {
     throw new ApiRequestError(0, {
-      code: "network_error",
-      message: "Can't reach the server. Check your internet or server address.",
+      code: (e as Error)?.name === "AbortError" ? "timeout" : "network_error",
+      message:
+        (e as Error)?.name === "AbortError"
+          ? "The server took too long to respond. Please try again."
+          : "Can't reach the server. Check your connection and try again.",
     });
+  } finally {
+    clearTimeout(timer);
   }
+
   const text = await res.text();
-  const json = text ? JSON.parse(text) : {};
+  // A sleeping or restarting host answers with an HTML error page, so never
+  // assume the body is JSON — parsing it blind turns that into a crash.
+  let json: any = {};
+  if (text) {
+    try {
+      json = JSON.parse(text);
+    } catch {
+      throw new ApiRequestError(res.status, {
+        code: res.ok ? "bad_response" : "server_unavailable",
+        message: res.ok
+          ? "Got an unexpected response from the server."
+          : "The server is starting up. Please try again in a moment.",
+      });
+    }
+  }
+
   if (!res.ok) {
     const err: ApiError = json.error ?? {
       code: "unknown",
