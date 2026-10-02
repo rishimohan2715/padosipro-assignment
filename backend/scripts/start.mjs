@@ -50,6 +50,27 @@ if (!url || !/^postgres(ql)?:\/\//.test(url)) {
 }
 console.log(`[start] DATABASE_URL ok (${url.length} chars, ${url.split("://")[0]}://…)`);
 
+// A deployed API that can't send OTPs can't register anyone, and the failure
+// would otherwise surface as a 500 on a user's first signup. Missing config is
+// deterministic, so fail now; a flaky mail host is not, so that only warns.
+if ((process.env.MAIL_TRANSPORT ?? "console").toLowerCase() === "smtp") {
+  const missing = ["SMTP_HOST", "SMTP_USER", "SMTP_PASS"].filter((k) => !process.env[k]);
+  const host = process.env.SMTP_HOST ?? "";
+  if (missing.length || host === "localhost" || host === "127.0.0.1") {
+    console.error(
+      `\n✗ MAIL_TRANSPORT=smtp but the SMTP settings are not usable.\n` +
+        (missing.length ? `  Missing: ${missing.join(", ")}\n` : "") +
+        (host === "localhost" || host === "127.0.0.1"
+          ? `  SMTP_HOST is "${host}", which is this container, not a mail server.\n`
+          : "") +
+        `  Set SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS in Render → Environment.\n` +
+        `  With Brevo, SMTP_PASS is the SMTP key (xsmtpsib-…), not the API key.\n`
+    );
+    process.exit(1);
+  }
+  console.log(`[start] SMTP configured (${host}:${process.env.SMTP_PORT ?? 587})`);
+}
+
 function run(label, cmd, args) {
   console.log(`\n[start] ${label}`);
   const r = spawnSync(cmd, args, { stdio: "inherit", env: process.env, shell: false });
