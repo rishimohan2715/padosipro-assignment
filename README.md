@@ -50,14 +50,16 @@ Then press:
 
 ### Point the app at the backend
 
-The default (`mobile/app.json → expo.extra.apiBaseUrl`) works for the Android emulator.
-Override for a physical device by editing `app.json`:
+**You normally don't need to.** The app derives the API host from the Expo dev server, so
+Expo Go on a phone, the Android emulator and the iOS simulator all work out of the box.
+
+To override (e.g. a deployed backend), set it in `mobile/app.json`:
 
 ```json
 "extra": { "apiBaseUrl": "http://192.168.1.42:4000" }
 ```
 
-Use the dev machine's LAN IP. Restart `expo start` after changing it.
+Restart `expo start` after changing it.
 
 ### Run the tests
 
@@ -65,7 +67,23 @@ Use the dev machine's LAN IP. Restart `expo start` after changing it.
 npm test            # from the repo root
 ```
 
-Covers OTP generation, expiry, resend cooldown, attempt limits, and password hashing.
+**25 tests**, covering the risky logic the brief calls out:
+
+| Area | Covered |
+| --- | --- |
+| OTP generation | 6 digits, HMAC-hashed at rest (never plaintext), ~10 min TTL |
+| OTP expiry | expired codes rejected with `otp_expired` |
+| Attempt limits | locks after 5 wrong tries — the correct code is refused too |
+| Single use | code is consumed on success, resend invalidates the previous one |
+| Resend cooldown | 30s enforced, returns `otp_cooldown` |
+| **Login rules** | unverified → `email_not_verified` (never a token); verified → JWT; wrong password and unknown email return an **identical** 401 so login can't enumerate accounts; email is case-insensitive |
+| Passwords | argon2 hashes, no plaintext stored, never returned in responses |
+| Auth guard | missing/invalid bearer token → 401 on protected routes |
+| Validation | +91 mobile format, short passwords, malformed emails, duplicate signup |
+
+`tests/otp.test.ts` unit-tests the OTP service against an in-memory store;
+`tests/auth.routes.test.ts` drives the real Express app with supertest against a
+throwaway SQLite database that's created and dropped per run.
 
 ---
 
@@ -76,8 +94,12 @@ Covers OTP generation, expiry, resend cooldown, attempt limits, and password has
 3. Enter the code in the **Verify** screen. On success you're logged in.
 4. First-time users see the **Profile** screen (Name, +91 mobile, Address, optional Business Name).
 5. Then the **Tasks** picker — grouped by category, searchable, multi-select, confirm.
-6. **Home** screen lists your selected tasks. Edit from here or log out.
+6. The **Dashboard** — your assigned Lifestyle Manager, a stat strip, and your selected
+   services as a category-grouped grid. Edit tasks or log out from here.
 7. Kill the app and reopen it — you stay logged in.
+
+> The Lifestyle Manager on the dashboard is **mocked client-side** (stable per user, no API
+> behind it) and the app says so when you tap it. See `DESIGN.md` for why.
 
 ---
 
@@ -95,7 +117,9 @@ The `preview` profile in `eas.json` is configured for a direct-install APK.
 
 > For local builds without an Expo account, run `npx expo prebuild && cd android && ./gradlew assembleRelease`. Then the APK lives at `android/app/build/outputs/apk/release/app-release.apk`.
 
-Before building, bake the production API URL into `app.json → expo.extra.apiBaseUrl` so the installed app can reach your backend (localhost won't work on a phone).
+**Before building**, point the app at a backend the phone can actually reach — a packaged APK
+has no Expo dev server to auto-detect from, and `localhost` means the phone itself. Set
+`app.json → expo.extra.apiBaseUrl` to your machine's LAN IP or a deployed URL.
 
 ---
 
