@@ -29,6 +29,17 @@ console.log(
   )}, scheme ${JSON.stringify(scheme)}`
 );
 
+// Checked before whitespace: pasting a whole `KEY=value` line usually drags a
+// newline along too, and the name prefix is the more useful thing to report.
+const named = raw.trim().match(/^([A-Z_][A-Z0-9_]*)=/);
+if (named) {
+  fail(
+    `includes the variable name: the value starts with "${named[1]}=".`,
+    "That prefix is .env file syntax. In a dashboard the name goes in the key field — " +
+      "paste only the part after the '=', starting at postgresql://"
+  );
+}
+
 if (raw !== raw.trim()) {
   fail(
     "has leading or trailing whitespace.",
