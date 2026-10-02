@@ -35,7 +35,15 @@ function normalise(name) {
   }
 }
 
-for (const key of ["DATABASE_URL", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "MAIL_FROM"]) {
+for (const key of [
+  "DATABASE_URL",
+  "BREVO_API_KEY",
+  "SMTP_HOST",
+  "SMTP_PORT",
+  "SMTP_USER",
+  "SMTP_PASS",
+  "MAIL_FROM",
+]) {
   normalise(key);
 }
 
@@ -56,14 +64,30 @@ console.log(`[start] DATABASE_URL ok (${url.length} chars, ${url.split("://")[0]
 const transport = (process.env.MAIL_TRANSPORT ?? "console").toLowerCase();
 
 if (transport === "brevo") {
-  if (!process.env.BREVO_API_KEY) {
+  const key = process.env.BREVO_API_KEY;
+  if (!key) {
     console.error(
       `\n✗ MAIL_TRANSPORT=brevo but BREVO_API_KEY is not set.\n` +
         `  Use the API key (xkeysib-…) from Brevo → SMTP & API → API keys.\n`
     );
     process.exit(1);
   }
-  console.log("[start] mail: Brevo HTTPS API");
+  // Brevo issues two keys and they are easy to mix up. The SMTP one authenticates
+  // the relay, not the REST API, so it would 401 on every send.
+  if (key.startsWith("xsmtpsib-")) {
+    console.error(
+      `\n✗ BREVO_API_KEY is an SMTP key (xsmtpsib-…), not an API key.\n` +
+        `  The HTTPS API needs the key from Brevo → SMTP & API → "API keys" tab,\n` +
+        `  which starts with xkeysib-. The SMTP tab's key only works for port 587.\n`
+    );
+    process.exit(1);
+  }
+  if (!key.startsWith("xkeysib-")) {
+    console.warn(
+      `[start] BREVO_API_KEY does not start with "xkeysib-" — if sends 401, that is why.`
+    );
+  }
+  console.log(`[start] mail: Brevo HTTPS API (key ${key.slice(0, 9)}…, ${key.length} chars)`);
 } else if (transport === "smtp") {
   const missing = ["SMTP_HOST", "SMTP_USER", "SMTP_PASS"].filter((k) => !process.env[k]);
   const host = process.env.SMTP_HOST ?? "";
