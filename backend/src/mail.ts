@@ -1,5 +1,26 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import { config } from "./config";
+import { HttpError } from "./middleware/error";
+
+/**
+ * A delivery failure the operator needs to act on. Carries a reason the client
+ * can see — the host and failure class, never the credentials — because
+ * otherwise this surfaces as an opaque 500 on the one route it breaks.
+ */
+export class MailError extends HttpError {
+  constructor(cause: Error, host: string, port: number) {
+    const m = cause.message.toLowerCase();
+    const reason =
+      m.includes("auth") || m.includes("535") || m.includes("credential")
+        ? "SMTP credentials were rejected"
+        : m.includes("econnrefused") || m.includes("enotfound") || m.includes("timeout")
+        ? `could not reach ${host}:${port}`
+        : m.includes("sender") || m.includes("from")
+        ? "the sender address is not accepted by the mail provider"
+        : "the mail server rejected the message";
+    super(502, "mail_send_failed", `Could not send the verification email: ${reason}.`);
+  }
+}
 
 function logOtp(to: string, code: string, ttlMinutes: number) {
   const banner = "═".repeat(52);
@@ -56,7 +77,14 @@ export async function sendOtpEmail(to: string, code: string, ttlMinutes: number)
       console.log(`[mail] sent to ${to} (messageId=${info.messageId})`);
     }
   } catch (err) {
-    if (!isDev) throw err;
+    if (!isDev) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[mail] send failed via ${config.smtp.host}:${config.smtp.port} ` +
+          `as ${config.smtp.user ?? "(no user)"} — ${(err as Error).message}`
+      );
+      throw new MailError(err as Error, config.smtp.host, config.smtp.port);
+    }
     // eslint-disable-next-line no-console
     console.warn(`[mail] SMTP failed (${(err as Error).message}). Falling back to console.`);
     logOtp(to, code, ttlMinutes);
