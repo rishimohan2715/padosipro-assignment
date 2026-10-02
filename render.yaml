@@ -1,0 +1,44 @@
+# Render blueprint for the PadosiPro API.
+# Deploy: render.com → New → Blueprint → pick this repo.
+#
+# DATABASE_URL and the SMTP_* vars are marked `sync: false`, so Render prompts
+# for them instead of storing them in git. See README §7.
+services:
+  - type: web
+    name: padosipro-api
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: backend
+    buildCommand: npm install && npm run prod:build
+    startCommand: npm run prod:start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: OTP_LENGTH
+        value: "6"
+      - key: OTP_TTL_MINUTES
+        value: "10"
+      - key: OTP_MAX_ATTEMPTS
+        value: "5"
+      - key: OTP_RESEND_COOLDOWN_SECONDS
+        value: "30"
+      - key: MAIL_TRANSPORT
+        value: smtp
+      - key: MAIL_FROM
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false

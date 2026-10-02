@@ -13,4 +13,5 @@ RUN npm run build
 RUN mkdir -p /app/data
 EXPOSE 4000
 
+# Local/compose runtime: SQLite on a mounted volume.
 CMD ["sh", "-c", "npx prisma migrate deploy && npx tsx prisma/seed.ts && node dist/index.js"]

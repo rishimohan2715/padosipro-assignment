@@ -20,7 +20,11 @@ Express API ──► Prisma ──► SQLite file (./data/prod.db in Docker)
 
 ### Why these choices
 
-- **SQLite + Prisma**: zero external DB to run, migrations and the seed are a single `prisma migrate deploy && tsx prisma/seed.ts`. Postgres would be a one-liner change in the datasource.
+- **SQLite locally, Postgres in production**: SQLite keeps local setup to one command with no Docker or DB daemon — which is what the brief optimises for. But a packaged APK needs a backend on the public internet, and free hosts don't give you a persistent disk, so the deployed instance runs Postgres.
+
+  Prisma can't take the provider from an env var, so rather than maintain two schemas I generate one from the other: `scripts/gen-prod-schema.mjs` reads `schema.prisma` and rewrites only the datasource block. The models have a single source of truth and can't drift. Production uses `prisma db push` rather than migrations — the schema is small, there's no production data to preserve, and it keeps the deploy a single step. With real users I'd switch to a Postgres migration history.
+
+  One sharp edge this creates: `prisma generate` writes a provider-specific client into `node_modules`, so running the production build locally leaves you with a Postgres client and a broken SQLite dev environment. Rather than document a footgun, `predev` and `pretest` regenerate the local client, so the local commands are self-healing.
 - **Argon2** for passwords (OWASP's current recommendation over bcrypt).
 - **HMAC-SHA256** for OTP hashes, not Argon2 — the code is 6 digits with a 10-minute TTL and a 5-attempt cap, so the attack surface is bounded; HMAC with a server-side secret is enough and keeps verification cheap.
 - **JWT** sessions with a long-ish expiry (`JWT_EXPIRES_IN=7d`) so the "stay logged in after restart" requirement works via AsyncStorage.
@@ -62,8 +66,8 @@ PadosiPro's primary audience is households, not businesses. Making the field req
 
 | Trade-off | What I did | What I'd do with more time |
 | --- | --- | --- |
-| DB simplicity vs. prod-realism | SQLite + Prisma for one-command setup | Postgres in docker-compose, migrations in CI |
-| OTP delivery | Mailpit catcher | SES/Postmark adapter behind the `mail.ts` seam |
+| DB simplicity vs. prod-realism | SQLite locally, Postgres on the deploy, one generated schema | A real Postgres migration history, run in CI |
+| OTP delivery | Console transport locally (no SMTP to install), real SMTP on the deploy | SES/Postmark adapter behind the `mail.ts` seam |
 | Rate limiting | Only the OTP cooldown is enforced | `express-rate-limit` on `/auth/*` globally, per-IP + per-email |
 | Session store | Stateless JWT | Rotating refresh tokens stored server-side; revocation on logout |
 | Tests | Risky logic only (OTP + hashing) | Supertest-level integration tests for every route + Detox E2E on the app |
