@@ -31,3 +31,9 @@ npm-debug.log*
 .idea/
 .vscode/
 .neon
+
+# Neon CLI artefacts — tooling config, not part of the assignment
+.agents/
+.claude/
+neon.ts
+skills-lock.json
