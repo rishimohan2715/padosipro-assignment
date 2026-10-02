@@ -17,7 +17,8 @@
     "test": "vitest run",
     "prod:schema": "node scripts/gen-prod-schema.mjs",
     "prod:build": "npm run prod:schema && prisma generate --schema prisma/schema.production.prisma && npm run build",
-    "prod:start": "prisma db push --schema prisma/schema.production.prisma --skip-generate && tsx prisma/seed.ts && node dist/index.js"
+    "prod:preflight": "node scripts/preflight.mjs",
+    "prod:start": "npm run prod:preflight && prisma db push --schema prisma/schema.production.prisma --skip-generate && tsx prisma/seed.ts && node dist/index.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
