@@ -21,8 +21,10 @@ export const config = {
   mail: {
     transport: (process.env.MAIL_TRANSPORT ?? "console").toLowerCase() as
       | "console"
-      | "smtp",
+      | "smtp"
+      | "brevo",
     from: process.env.MAIL_FROM ?? "PadosiPro <no-reply@padosipro.local>",
+    brevoApiKey: process.env.BREVO_API_KEY || undefined,
   },
   smtp: {
     host: process.env.SMTP_HOST ?? "localhost",

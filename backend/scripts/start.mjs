@@ -53,7 +53,18 @@ console.log(`[start] DATABASE_URL ok (${url.length} chars, ${url.split("://")[0]
 // A deployed API that can't send OTPs can't register anyone, and the failure
 // would otherwise surface as a 500 on a user's first signup. Missing config is
 // deterministic, so fail now; a flaky mail host is not, so that only warns.
-if ((process.env.MAIL_TRANSPORT ?? "console").toLowerCase() === "smtp") {
+const transport = (process.env.MAIL_TRANSPORT ?? "console").toLowerCase();
+
+if (transport === "brevo") {
+  if (!process.env.BREVO_API_KEY) {
+    console.error(
+      `\n✗ MAIL_TRANSPORT=brevo but BREVO_API_KEY is not set.\n` +
+        `  Use the API key (xkeysib-…) from Brevo → SMTP & API → API keys.\n`
+    );
+    process.exit(1);
+  }
+  console.log("[start] mail: Brevo HTTPS API");
+} else if (transport === "smtp") {
   const missing = ["SMTP_HOST", "SMTP_USER", "SMTP_PASS"].filter((k) => !process.env[k]);
   const host = process.env.SMTP_HOST ?? "";
   if (missing.length || host === "localhost" || host === "127.0.0.1") {

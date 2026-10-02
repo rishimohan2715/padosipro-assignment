@@ -67,7 +67,7 @@ PadosiPro's primary audience is households, not businesses. Making the field req
 | Trade-off | What I did | What I'd do with more time |
 | --- | --- | --- |
 | DB simplicity vs. prod-realism | SQLite locally, Postgres on the deploy, one generated schema | A real Postgres migration history, run in CI |
-| OTP delivery | Console transport locally (no SMTP to install), real SMTP on the deploy | SES/Postmark adapter behind the `mail.ts` seam |
+| OTP delivery | Console locally, Brevo's HTTPS API on the deploy (Render blocks outbound SMTP ports) | SES/Postmark adapter behind the same `mail.ts` seam |
 | Rate limiting | Only the OTP cooldown is enforced | `express-rate-limit` on `/auth/*` globally, per-IP + per-email |
 | Session store | Stateless JWT | Rotating refresh tokens stored server-side; revocation on logout |
 | Tests | Risky logic only (OTP + hashing) | Supertest-level integration tests for every route + Detox E2E on the app |
