@@ -10,7 +10,9 @@ services:
     plan: free
     region: singapore
     rootDir: backend
-    buildCommand: npm install && npm run prod:build
+    # --include=dev because NODE_ENV=production below makes npm skip
+    # devDependencies, and the build needs TypeScript.
+    buildCommand: npm install --include=dev && npm run prod:build
     startCommand: npm run prod:start
     healthCheckPath: /health
     envVars:
