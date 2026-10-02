@@ -1,0 +1,10 @@
+{
+  "name": "padosipro-assignment",
+  "private": true,
+  "scripts": {
+    "setup": "cd backend && (test -f .env || cp .env.example .env) && npm install && npx prisma generate && npx prisma migrate deploy && npm run seed && cd ../mobile && npm install",
+    "backend": "cd backend && npm run dev",
+    "mobile": "cd mobile && npx expo start",
+    "test": "cd backend && npm test"
+  }
+}

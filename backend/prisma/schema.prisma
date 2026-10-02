@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  passwordHash    String
+  emailVerified   Boolean  @default(false)
+  profileComplete Boolean  @default(false)
+
+  name            String?
+  mobile          String?
+  address         String?
+  businessName    String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  otps            Otp[]
+  selections      UserTask[]
+}
+
+model Otp {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash      String
+  purpose       String   @default("email_verify")
+  expiresAt     DateTime
+  attempts      Int      @default(0)
+  consumedAt    DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([userId, purpose])
+}
+
+model Category {
+  id     String @id @default(cuid())
+  slug   String @unique
+  name   String
+  tasks  Task[]
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  selections  UserTask[]
+}
+
+model UserTask {
+  userId String
+  taskId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@id([userId, taskId])
+}

@@ -1,0 +1,39 @@
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: padosipro-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI (open http://localhost:8025)
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+  api:
+    build: .
+    container_name: padosipro-api
+    restart: unless-stopped
+    depends_on:
+      - mailpit
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: 4000
+      NODE_ENV: production
+      DATABASE_URL: "file:./data/prod.db"
+      JWT_SECRET: "dev-secret-change-me"
+      JWT_EXPIRES_IN: "7d"
+      OTP_LENGTH: 6
+      OTP_TTL_MINUTES: 10
+      OTP_MAX_ATTEMPTS: 5
+      OTP_RESEND_COOLDOWN_SECONDS: 30
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      MAIL_FROM: "PadosiPro <no-reply@padosipro.local>"
+    volumes:
+      - api-data:/app/data
+
+volumes:
+  api-data:

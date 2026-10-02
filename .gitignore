@@ -1,0 +1,32 @@
+node_modules/
+dist/
+build/
+
+# Env — never commit real secrets. .env.example is tracked.
+.env
+.env.local
+*.env
+!.env.example
+
+# Databases
+*.db
+*.db-journal
+
+# Expo / React Native
+.expo/
+.expo-shared/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+android/
+ios/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+.idea/
+.vscode/

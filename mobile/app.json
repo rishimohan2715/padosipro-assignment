@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "PadosiPro",
+    "slug": "padosipro",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "padosipro",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#0E6B4F",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.padosipro.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0E6B4F"
+      },
+      "package": "com.padosipro.app"
+    },
+    "extra": {}
+  }
+}
