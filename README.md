@@ -87,7 +87,29 @@ throwaway SQLite database that's created and dropped per run.
 
 ---
 
-## 4. The full flow (how to try it)
+## 4. Trying the built APK
+
+The APK points at the deployed API, so it runs without anything on your machine:
+
+| | |
+| --- | --- |
+| **API** | https://padosipro-api-4wud.onrender.com |
+| **Demo login** | `demo@padosipro.test` / `PadosiPro@2026` |
+
+That account is verified but has no profile yet, so logging in walks the whole first-login
+journey: profile → task selection → dashboard.
+
+**Why a demo account rather than signing up?** The deployed instance prints OTPs to its server
+log (see §6), which you can't see — so registration can't be completed against it. To exercise
+**registration and OTP verification**, run the backend locally with the two commands above: the
+code appears in your own terminal and the full signup flow works end to end.
+
+> First request after idle takes ~50s — the free tier sleeps. The app shows a loading state
+> rather than failing. Opening `/health` in a browser first wakes it.
+
+---
+
+## 5. The full flow (how to try it)
 
 1. Open the app → **Register** with any email + password (min 8 chars).
 2. Look at the **backend terminal** — the 6-digit OTP is printed in a highlighted banner. (If you flipped `MAIL_TRANSPORT=smtp` + Mailpit, open **http://localhost:8025** instead.)
@@ -103,7 +125,7 @@ throwaway SQLite database that's created and dropped per run.
 
 ---
 
-## 5. Build the Android APK
+## 6. Build the Android APK
 
 ```bash
 cd mobile
@@ -124,7 +146,7 @@ URL, then build.
 
 ---
 
-## 6. Deploy the backend (so the APK works for anyone)
+## 7. Deploy the backend (so the APK works for anyone)
 
 The app in Expo Go talks to your laptop. A **packaged APK needs a backend on the public
 internet**, otherwise it only works on your Wi-Fi.
@@ -179,7 +201,7 @@ rerun the EAS build.
 
 ---
 
-## 7. API surface
+## 8. API surface
 
 Base URL: `http://localhost:4000`
 
@@ -200,7 +222,7 @@ All error responses use `{ "error": { "code", "message", "details?" } }`.
 
 ---
 
-## 8. Repo layout
+## 9. Repo layout
 
 ```
 padosipro-assignment/

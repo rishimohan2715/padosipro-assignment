@@ -24,7 +24,11 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "extra": {},
+    "extra": {
+      "eas": {
+        "projectId": "29a1c4d2-324c-4d17-b3d6-f44e945d9c43"
+      }
+    },
     "plugins": [
       [
         "expo-splash-screen",
@@ -34,6 +38,7 @@
           "imageWidth": 200
         }
       ]
-    ]
+    ],
+    "owner": "r1shi"
   }
 }

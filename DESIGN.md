@@ -56,6 +56,23 @@ take-home. The seam is obvious: swap `pickManager()` for a `GET /api/manager/me`
 The "~Nh saved / week" tile is likewise a presentational estimate (`tasks × 1.5`), labelled as an estimate, not a
 tracked metric.
 
+### Mail on the deployed instance
+
+Locally the OTP prints to the server console — no SMTP to install, and the signup flow works
+end to end from a fresh clone. That is the path the README leads with.
+
+The deployed instance is a different problem. Free PaaS tiers block outbound SMTP ports
+(25/465/587) to curb spam, which no credential works around — the deploy failed with
+"could not reach smtp-relay.brevo.com:587" using credentials that demonstrably worked from a
+laptop. So `mail.ts` grew a third transport that reaches the same provider over its HTTPS API
+on 443, selected by one environment variable with no code change.
+
+The hosted demo currently runs in `console` mode, so its OTPs land in the server log. That
+makes registration unverifiable for anyone without access to those logs, so the APK ships with
+a **pre-verified demo account** (`README` §4) that exercises everything after verification.
+Registration and OTP handling are exercised locally instead, where the code is visible, and by
+`tests/auth.routes.test.ts`.
+
 ### Business Name — why optional
 
 PadosiPro's primary audience is households, not businesses. Making the field required would block legitimate signups. The server accepts it as optional and stores `null` when absent; the UI labels it clearly.
